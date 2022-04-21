@@ -25,5 +25,78 @@ this_module='imbhistory'
 
 ########################################################3
 
+#Defaults values
+defaults={ 'directory' : os.path.dirname(__file__),
+           'z_min' : 0,
+           'z_max' : 10,
+           'mu' : 2,
+           'sigma' : 1.5,
+           'mimbh_min' : 1e2,
+           'mimbh_max' : 1e4,
+           'qmin' : 1e-3,
+           'qmax' : 1}
 
+class imbhistory(object):
+    '''
+    Compute cosmological merger rates for supermassive black holes - intermediate-mass black holes binaries
+
+    Usage:
+        p=imbhistory()
+        zobs, m1obs, qobs = p(nsample)
+
+    Parameters:
+        nsample # number of samples
+        directory # directory
+        z_min # minimum redshift
+        z_max # maximum_redshift
+        mu # mean redshift distribution
+        sigma # dispersion redshift distribution
+        mimbh_min # minimum IMBH mass
+        mimibh_max # maximum IMBH mass
+        qmin # minimum mass ratio
+        qmax # maximum mass ratio
+
+    Returns:
+        zobs # detectable redshift
+        m1obs # detectable primary mass
+        qobs # detectable mass ratio
+    '''
+
+
+    def __init__(self,  directory=defaults['directory'],
+                        z_min=defaults['z_min'],
+                        z_max=defaults['z_max'],
+                        mu=defaults['mu'],
+                        sigma=defaults['sigma']
+                        mimbh_min=defaults['mimbh_min']
+                        mimbh_max=defaults['mimbh_max']
+                        qmin=defaults['qmin']
+                        qmax=defaults['qmax']):
+
+        self.directory = directory
+        self.z_min = z_min
+        self.z_max = z_max
+        self.mu = mu
+        self.sigma = sigma
+        self.mimbh_min = mimbh_min
+        self.mimbh_max = mimbh_max
+        self.qmin = qmin
+        self.qmax = qmax
+
+
+    def ratered(self, z)
+
+        
+
+        return
+
+    def eval(self, nsample):
+
+        return None
+
+
+    def __call__(self, nsample):
+        ''' Compute merger rate as a function of redshift '''
+
+        return self.eval(nsample)
 

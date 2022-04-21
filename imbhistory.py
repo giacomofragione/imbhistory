@@ -34,7 +34,8 @@ defaults={ 'directory' : os.path.dirname(__file__),
            'mimbh_min' : 1e2,
            'mimbh_max' : 1e4,
            'qmin' : 1e-3,
-           'qmax' : 1}
+           'qmax' : 1,
+           'instr' : lisa}
 
 class imbhistory(object):
     '''
@@ -55,6 +56,7 @@ class imbhistory(object):
         mimibh_max # maximum IMBH mass
         qmin # minimum mass ratio
         qmax # maximum mass ratio
+        instr # detector name
 
     Returns:
         zobs # detectable redshift
@@ -67,11 +69,12 @@ class imbhistory(object):
                         z_min=defaults['z_min'],
                         z_max=defaults['z_max'],
                         mu=defaults['mu'],
-                        sigma=defaults['sigma']
-                        mimbh_min=defaults['mimbh_min']
-                        mimbh_max=defaults['mimbh_max']
-                        qmin=defaults['qmin']
-                        qmax=defaults['qmax']):
+                        sigma=defaults['sigma'],
+                        mimbh_min=defaults['mimbh_min'],
+                        mimbh_max=defaults['mimbh_max'],
+                        qmin=defaults['qmin'],
+                        qmax=defaults['qmax'],
+                        instr=defaults['instr']):
 
         self.directory = directory
         self.z_min = z_min
@@ -82,13 +85,13 @@ class imbhistory(object):
         self.mimbh_max = mimbh_max
         self.qmin = qmin
         self.qmax = qmax
+        self.instr = instr
 
 
     def ratered(self, z)
 
-        
+        return np.exp(-(z - self.mu) ** 2. / 2. / self.sigma ** 2.)        
 
-        return
 
     def eval(self, nsample):
 
@@ -96,7 +99,8 @@ class imbhistory(object):
 
 
     def __call__(self, nsample):
-        ''' Compute merger rate as a function of redshift '''
+        ''' Compute mergers detectable by instrument '''
 
         return self.eval(nsample)
+
 

@@ -25,7 +25,7 @@ this_module='imbhistory'
 
 ########################################################3
 
-##Defaults values
+#Defaults values
 defaults={ 'directory' : os.path.dirname(__file__),
            'z_min' : 0,
            'z_max' : 10,

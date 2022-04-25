@@ -14,7 +14,6 @@ import random
 from datetime import datetime
 random.seed(datetime.now())
 
-
 ########################################################3
 
 __author__ = "Giacomo Fragione"

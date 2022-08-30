@@ -43,7 +43,7 @@ class imbhistory(object):
 
     Usage:
         p=imbhistory()
-        zobs, m1obs, qobs = p(nsample)
+        zobs, m1obs, qobs, snr = p(nsample)
 
     Parameters:
         nsample # number of samples
@@ -61,7 +61,8 @@ class imbhistory(object):
     Returns:
         zobs # detectable redshift
         m1obs # detectable primary mass
-        qobs # detectable mass ratio
+        qobs # detectable mass ratio - m2obs = m1obs * qobs
+        snr # signal-to-noise ratio
     '''
 
 
@@ -95,7 +96,19 @@ class imbhistory(object):
 
     def eval(self, nsample):
 
-        return None
+        zobs, m1obs, qobs, snr = ([]), ([]), ([]), ([])
+
+        for k in range(nsample):
+            zobs, m1obs, qobs, snr = self.compute_snr()
+
+        (Idx,) = np.where(snr > 8.) # systems that are deemed observable
+
+        return(
+            zobs[Idx],
+            m1obs[Idx],
+            qobs[Idx],
+            snr[Idx],
+        )
 
 
     def __call__(self, nsample):

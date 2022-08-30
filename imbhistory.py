@@ -89,9 +89,19 @@ class imbhistory(object):
         self.instr = instr
 
 
-    def ratered(self, z)
+    def ratered(self, z):
 
         return np.exp(-(z - self.mu) ** 2. / 2. / self.sigma ** 2.)        
+
+
+    def compute_snr(self):
+
+        return(
+            zz,
+            m1,
+            q,
+            snr,
+        )
 
 
     def eval(self, nsample):

@@ -4,8 +4,9 @@ https://github.com/giacomofragione/imbhistory
 '''
 
 import numpy as np
-import os
-import sys
+import os, sys
+
+import gwinstr, functions
 
 import astropy.units as u
 from astropy.cosmology import Planck15, z_at_value
@@ -33,8 +34,10 @@ defaults={ 'directory' : os.path.dirname(__file__),
            'sigma' : 1.5,
            'mimbh_min' : 1e2,
            'mimbh_max' : 1e4,
+           'slope_mimbh' : -1,
            'qmin' : 1e-3,
            'qmax' : 1,
+           'slope_q' : -1,
            'instr' : lisa}
 
 class imbhistory(object):
@@ -54,8 +57,10 @@ class imbhistory(object):
         sigma # dispersion redshift distribution
         mimbh_min # minimum IMBH mass
         mimibh_max # maximum IMBH mass
+        slope_mimbh # slope of the power law describing IMBH mass
         qmin # minimum mass ratio
         qmax # maximum mass ratio
+        slope_q # slope of the power law describing mass ratio
         instr # detector name
 
     Returns:
@@ -73,8 +78,10 @@ class imbhistory(object):
                         sigma=defaults['sigma'],
                         mimbh_min=defaults['mimbh_min'],
                         mimbh_max=defaults['mimbh_max'],
+                        slope_mimbh=defaults['slope_mimbh'],
                         qmin=defaults['qmin'],
                         qmax=defaults['qmax'],
+                        slope_q=defaults['slope_q'],
                         instr=defaults['instr']):
 
         self.directory = directory
@@ -96,6 +103,42 @@ class imbhistory(object):
 
     def compute_snr(self):
 
+        m1 = functions.sample_powerlaw(self.mimbh_min, self.mimbh_max, self.slope_imbh)
+        qq = functions.sample_powerlaw(self.qmin, self.qmax, self.slope_q)
+        m2 = qq * m1
+
+        ff_min = 0.04 * ((m1 + m2) / 100.) ** 0.125 / (m1 * m2 / 100.) ** 0.375 / (tlisa / 4.) ** 0.375
+        ff_min = np.log10(ff_min)
+        if self.instr == 'lisa':
+            ff_min = max(ff_min,-5)
+            ff_max = 0
+        elif self.instr == 'ligo':
+            ff_min = max(ff_min,1)
+            ff_max = 4
+        elif self.instr == 'et':
+            ff_min = max(ff_min,0)
+            ff_max = 4
+        elif self.instr == 'decigo':
+            ff_min = max(ff_min,-3)
+            ff_max = 2
+        freq_arr = np.logspace(ff_min, ff_max, 100, endpoint=True)
+
+        sum = 0.0
+        for i in range(len(freq_arr)-1):
+
+            freq = (freq_arr[i+1] + freq_arr[i]) / 2.
+            deltaf = freq_arr[i+1] - freq_arr[i]
+            if self.instr == 'lisa':
+                sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.lisa_noise(freq)
+            elif self.instr == 'ligo':
+                sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.ligo_noise(freq)
+            elif self.instr == 'et':
+                sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.et_noise(freq)
+            elif self.instr == 'decigo':
+                sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.decigo_noise(freq)
+            
+        sum = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
+
         return(
             zz,
             m1,
@@ -106,18 +149,22 @@ class imbhistory(object):
 
     def eval(self, nsample):
 
-        zobs, m1obs, qobs, snr = ([]), ([]), ([]), ([])
+        zobs_arr, m1obs_arr, qobs_arr, snr_arr = ([]), ([]), ([]), ([])
 
         for k in range(nsample):
             zobs, m1obs, qobs, snr = self.compute_snr()
+            zobs_arr = np.append(zobs_arr, zobs)
+            m1obs_arr = np.append(m1obs_arr, m1obs)
+            qobs_arr = np.append(qobs_arr, qobs)
+            snr_arr = np.append(snr_arr, snr)
 
-        (Idx,) = np.where(snr > 8.) # systems that are deemed observable
+        (Idx,) = np.where(snr_arr > 8.) # systems that are deemed observable
 
         return(
-            zobs[Idx],
-            m1obs[Idx],
-            qobs[Idx],
-            snr[Idx],
+            zobs_arr[Idx],
+            m1obs_arr[Idx],
+            qobs_arr[Idx],
+            snr_arr[Idx],
         )
 
 

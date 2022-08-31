@@ -37,8 +37,7 @@ defaults={ 'directory' : os.path.dirname(__file__),
            'slope_mimbh' : -1,
            'qmin' : 1e-3,
            'qmax' : 1,
-           'slope_q' : -1,
-           'instr' : 'lisa'}
+           'slope_q' : -1}
 
 class imbhistory(object):
     '''
@@ -61,7 +60,6 @@ class imbhistory(object):
         qmin # minimum mass ratio
         qmax # maximum mass ratio
         slope_q # slope of the power law describing mass ratio
-        instr # detector name
 
     Returns:
         zobs # detectable redshift
@@ -81,8 +79,7 @@ class imbhistory(object):
                         slope_mimbh=defaults['slope_mimbh'],
                         qmin=defaults['qmin'],
                         qmax=defaults['qmax'],
-                        slope_q=defaults['slope_q'],
-                        instr=defaults['instr']):
+                        slope_q=defaults['slope_q']):
 
         self.directory = directory
         self.z_min = z_min
@@ -95,7 +92,6 @@ class imbhistory(object):
         self.qmin = qmin
         self.qmax = qmax
         self.slope_q= slope_q
-        self.instr = instr
 
 
     def ratered(self):
@@ -119,62 +115,88 @@ class imbhistory(object):
 
         ff_min = 0.04 * ((m1 + m2) / 100.) ** 0.125 / (m1 * m2 / 100.) ** 0.375 / (tlisa / 4.) ** 0.375
         ff_min = np.log10(ff_min)
-        if self.instr == 'lisa':
-            ff_min = max(ff_min,-5)
-            ff_max = 0
-        elif self.instr == 'ligo':
-            ff_min = max(ff_min,1)
-            ff_max = 4
-        elif self.instr == 'et':
-            ff_min = max(ff_min,0)
-            ff_max = 4
-        elif self.instr == 'decigo':
-            ff_min = max(ff_min,-3)
-            ff_max = 2
-        freq_arr = np.logspace(ff_min, ff_max, 100, endpoint=True)
+        ff_min_lisa = max(ff_min,-5)
+        ff_max_lisa = 0
+        ff_min_ligo = max(ff_min,1)
+        ff_max_ligo = 4
+        ff_min_et = max(ff_min,0)
+        ff_max_et = 4
+        ff_min_decigo = max(ff_min,-3)
+        ff_max_decigo = 2
+        freq_arr_lisa = np.logspace(ff_min_lisa, ff_max_lisa, 100, endpoint=True)
+        freq_arr_ligo = np.logspace(ff_min_ligo, ff_max_ligo, 100, endpoint=True)
+        freq_arr_et = np.logspace(ff_min_et, ff_max_et, 100, endpoint=True)
+        freq_arr_decigo = np.logspace(ff_min_decigo, ff_max_decigo, 100, endpoint=True)
 
         sum = 0.0
+        freq_arr = frwq_arr_lisa
         for i in range(len(freq_arr)-1):
 
             freq = (freq_arr[i+1] + freq_arr[i]) / 2.
             deltaf = freq_arr[i+1] - freq_arr[i]
-            if self.instr == 'lisa':
-                sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.lisa_noise(freq)
-            elif self.instr == 'ligo':
-                sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.ligo_noise(freq)
-            elif self.instr == 'et':
-                sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.et_noise(freq)
-            elif self.instr == 'decigo':
-                sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.decigo_noise(freq)
-            
-        snr = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
+            sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.lisa_noise(freq)
+        snr_lisa = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
+
+        sum = 0.0
+        freq_arr = frwq_arr_ligo
+        for i in range(len(freq_arr)-1):
+
+            freq = (freq_arr[i+1] + freq_arr[i]) / 2.
+            deltaf = freq_arr[i+1] - freq_arr[i]
+            sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.ligo_noise(freq)
+        snr_ligo = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
+
+        sum = 0.0
+        freq_arr = frwq_arr_et
+        for i in range(len(freq_arr)-1):
+
+            freq = (freq_arr[i+1] + freq_arr[i]) / 2.
+            deltaf = freq_arr[i+1] - freq_arr[i]
+            sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.et_noise(freq)
+        snr_et = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
+
+        sum = 0.0
+        freq_arr = frwq_arr_decigo
+        for i in range(len(freq_arr)-1):
+
+            freq = (freq_arr[i+1] + freq_arr[i]) / 2.
+            deltaf = freq_arr[i+1] - freq_arr[i]
+            sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.decigo_noise(freq)
+        snr_decigo = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
 
         return(
             zz,
             m1,
             qq,
-            snr,
+            snr_lisa,
+            snr_ligo,
+            snr_et,
+            snr_decigo,
         )
 
 
     def eval(self, nsample):
 
-        zobs_arr, m1obs_arr, qobs_arr, snr_arr = ([]), ([]), ([]), ([])
+        zobs_arr, m1obs_arr, qobs_arr, snr_lisa_arr, snr_ligo_arr, snr_et_arr, snr_decigo_arr = ([]), ([]), ([]), ([]), ([]), ([]), ([])
 
         for k in range(nsample):
-            zobs, m1obs, qobs, snr = self.compute_snr()
+            zobs, m1obs, qobs, snr_lisa, snr_ligo, snr_et, snr_decigo = self.compute_snr()
             zobs_arr = np.append(zobs_arr, zobs)
             m1obs_arr = np.append(m1obs_arr, m1obs)
             qobs_arr = np.append(qobs_arr, qobs)
-            snr_arr = np.append(snr_arr, snr)
-
-        (Idx,) = np.where(snr_arr > 8.) # systems that are deemed observable
+            snr_lisa_arr = np.append(snr_lisa_arr, snr_lisa)
+            snr_ligo_arr = np.append(snr_ligo_arr, snr_ligo)
+            snr_et_arr = np.append(snr_et_arr, snr_et)
+            snr_decigo_arr = np.append(snr_decigo_arr, snr_decigo)
 
         return(
-            zobs_arr[Idx],
-            m1obs_arr[Idx],
-            qobs_arr[Idx],
-            snr_arr[Idx],
+            zobs_arr,
+            m1obs_arr,
+            qobs_arr,
+            snr_lisa_arr,
+            snr_ligo_arr,
+            snr_et_arr,
+            snr_decigo_arr,
         )
 
 

@@ -38,7 +38,7 @@ defaults={ 'directory' : os.path.dirname(__file__),
            'qmin' : 1e-3,
            'qmax' : 1,
            'slope_q' : -1,
-           'instr' : lisa}
+           'instr' : 'lisa'}
 
 class imbhistory(object):
     '''
@@ -91,21 +91,31 @@ class imbhistory(object):
         self.sigma = sigma
         self.mimbh_min = mimbh_min
         self.mimbh_max = mimbh_max
+        self.slope_mimbh= slope_mimbh
         self.qmin = qmin
         self.qmax = qmax
+        self.slope_q= slope_q
         self.instr = instr
 
 
-    def ratered(self, z):
+    def ratered(self):
 
-        return np.exp(-(z - self.mu) ** 2. / 2. / self.sigma ** 2.)        
+        red = -1
+        while red < self.z_min or red > self.z_max: 
+            red = np.random.normal(self.mu, self.sigma, 1)[0]
+
+        return red
 
 
     def compute_snr(self):
 
-        m1 = functions.sample_powerlaw(self.mimbh_min, self.mimbh_max, self.slope_imbh)
+        zz = self.ratered()
+
+        m1 = functions.sample_powerlaw(self.mimbh_min, self.mimbh_max, self.slope_mimbh)
         qq = functions.sample_powerlaw(self.qmin, self.qmax, self.slope_q)
         m2 = qq * m1
+
+        tlisa = 5.
 
         ff_min = 0.04 * ((m1 + m2) / 100.) ** 0.125 / (m1 * m2 / 100.) ** 0.375 / (tlisa / 4.) ** 0.375
         ff_min = np.log10(ff_min)
@@ -137,12 +147,12 @@ class imbhistory(object):
             elif self.instr == 'decigo':
                 sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.decigo_noise(freq)
             
-        sum = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
+        snr = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
 
         return(
             zz,
             m1,
-            q,
+            qq,
             snr,
         )
 

@@ -129,7 +129,7 @@ class imbhistory(object):
         freq_arr_decigo = np.logspace(ff_min_decigo, ff_max_decigo, 100, endpoint=True)
 
         sum = 0.0
-        freq_arr = frwq_arr_lisa
+        freq_arr = freq_arr_lisa
         for i in range(len(freq_arr)-1):
 
             freq = (freq_arr[i+1] + freq_arr[i]) / 2.
@@ -138,7 +138,7 @@ class imbhistory(object):
         snr_lisa = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
 
         sum = 0.0
-        freq_arr = frwq_arr_ligo
+        freq_arr = freq_arr_ligo
         for i in range(len(freq_arr)-1):
 
             freq = (freq_arr[i+1] + freq_arr[i]) / 2.
@@ -147,7 +147,7 @@ class imbhistory(object):
         snr_ligo = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
 
         sum = 0.0
-        freq_arr = frwq_arr_et
+        freq_arr = freq_arr_et
         for i in range(len(freq_arr)-1):
 
             freq = (freq_arr[i+1] + freq_arr[i]) / 2.
@@ -156,7 +156,7 @@ class imbhistory(object):
         snr_et = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
 
         sum = 0.0
-        freq_arr = frwq_arr_decigo
+        freq_arr = freq_arr_decigo
         for i in range(len(freq_arr)-1):
 
             freq = (freq_arr[i+1] + freq_arr[i]) / 2.

@@ -84,3 +84,9 @@ def sample_powerlaw(mmin, mmax, slope):
 
     return mb
 
+def red_formation(z, z_nsc, sigma_nsc):
+
+    return np.exp(-(z - z_nsc) ** 2 / (2.0 * sigma_nsc ** 2))
+
+
+

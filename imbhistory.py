@@ -96,11 +96,20 @@ class imbhistory(object):
 
     def ratered(self):
 
-        red = -1
-        while red < self.z_min or red > self.z_max: 
-            red = np.random.normal(self.mu, self.sigma, 1)[0]
+        red_arr = np.arange(self.z_min, self.z_max, 0.1)
+        nev = []
+        for i in range(len(red_arr)):
+            nev.append(Planck15.comoving_distance(red_arr[i]).value ** 3 / (1. + red_arr[i]) * functions.red_formation(red_arr[i], self.mu, self.sigma))
+        nev = np.array(nev)
+        ymin, ymax = min(nev), max(nev)
 
-        return red
+        yfunc, ysample = -1, 0
+        while ysample > yfunc:
+            ysample = ymin + random.random() * (ymax - ymin)
+            xsample = self.z_min + random.random() * (self.z_max - self.z_min)
+            yfunc = Planck15.comoving_distance(xsample).value ** 3 / (1. + xsample) * functions.red_formation(xsample, self.mu, self.sigma)
+
+        return xsample
 
 
     def compute_snr(self):

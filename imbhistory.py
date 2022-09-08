@@ -35,7 +35,7 @@ defaults={ 'directory' : os.path.dirname(__file__),
            'mimbh_min' : 1e2,
            'mimbh_max' : 1e4,
            'slope_mimbh' : -1,
-           'qmin' : 1e-3,
+           'qmin' : 1e-2,
            'qmax' : 1,
            'slope_q' : -1}
 
@@ -117,10 +117,12 @@ class imbhistory(object):
         zz = self.ratered()
 
         m1 = functions.sample_powerlaw(self.mimbh_min, self.mimbh_max, self.slope_mimbh)
-        qq = functions.sample_powerlaw(self.qmin, self.qmax, self.slope_q)
-        m2 = qq * m1
+        m2 = 0.
+        while m2 < 10.:
+            qq = functions.sample_powerlaw(self.qmin, self.qmax, self.slope_q)
+            m2 = qq * m1
 
-        tlisa = 5.
+        tlisa = 5. # duration of LISA mission
 
         ff_min = 0.04 * ((m1 + m2) / 100.) ** 0.125 / (m1 * m2 / 100.) ** 0.375 / (tlisa / 4.) ** 0.375
         ff_min = np.log10(ff_min)

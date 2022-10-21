@@ -146,7 +146,7 @@ class imbhistory(object):
             freq = (freq_arr[i+1] + freq_arr[i]) / 2.
             deltaf = freq_arr[i+1] - freq_arr[i]
             sum += deltaf * gwinstr.hc(freq, m1, m2, zz) ** 2.0 / gwinstr.lisa_noise(freq)
-        snr_lisa = 4.0 / np.sqrt(5.0) * np.sqrt(sum)
+        snr_lisa = 4.0 / np.sqrt(np.sqrt(5.0)) * np.sqrt(sum)
 
         sum = 0.0
         freq_arr = freq_arr_ligo

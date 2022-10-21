@@ -1,12 +1,38 @@
+import matplotlib.pyplot as pl
+import matplotlib.colors as cl
+import detection as dt
 import numpy as np
 import os
 import sys
+from scipy.interpolate import interp1d
+from scipy.stats import lognorm
+from scipy.stats import maxwell
 import astropy.units as u
 from astropy.cosmology import Planck15, z_at_value
+
+import random
+from datetime import datetime
+random.seed(datetime.now())
 
 #################
 
 def lisa_noise(ff):
+
+    data = np.loadtxt('hf_lisa.txt')
+
+    x = data[:,0]
+    y = data[:,1]
+
+    (Idx,) = np.where(x > ff)
+    i = Idx[0] - 1
+    yvalue = (y[i+1] - y[i]) / (x[i+1] - x[i]) * (ff - x[i]) + y[i]
+
+    yvalue *= yvalue
+
+    return yvalue
+
+
+def lisa_noise2(ff):
 
     Larm = 2.5e9 # m
     fstar = 19.09e-3 # mHz
@@ -64,7 +90,7 @@ def decigo_noise(ff):
 
 def et_noise(ff):
 
-    data = np.loadtxt('et_noise.txt')
+    data = np.loadtxt('et_d.txt')
 
     x = data[:,0]
     y = data[:,1]
@@ -78,6 +104,9 @@ def et_noise(ff):
     return yvalue
 
 def hc(ff, m1, m2, z):
+
+    G, c = 1.29e11, 3.0e5 # km^2/s, km/s
+    m1, m2 = m1 * (1. + z), m2 * (1. + z)
 
     mchirp = (m1 * m2) ** (3.0 / 5.0) / (m1 + m2) ** (1.0 / 5.0)
     eta = m1 * m2 / (m1 +  m2) ** 2.
@@ -94,14 +123,11 @@ def hc(ff, m1, m2, z):
     elle = (1. / 2. / np.pi) * f2 / ((ff - f1) ** 2. + f2 ** 2. / 4.)
     w = np.pi * f2 / 2. * (f0 / f1) ** (2. / 3.)
 
-    A = np.sqrt(5.0 / 24.0 / np.pi ** (4.0 / 3.0)) * 3.63e-19 # constants
+    A = np.sqrt(5.0 / 24.0 / np.pi ** (4.0 / 3.0)) * G ** (5.0 / 6.0) / c ** 1.5 # constants
 
-    mchirpz= mchirp * (1+z)
-    #fz = ff / (1+z) # in Hz
-    dl = Planck15.luminosity_distance(z).value # in Mpc
+    dl = Planck15.luminosity_distance(z).value * 3.0e19 # in km
 
-    #hc = A * mchirpz ** (5.0 / 6.0) / dl / (1.0 + z) / fz ** (7.0 / 6.0)
-    hc = A * mchirpz ** (5.0 / 6.0) / dl / f0 ** (7.0 / 6.0)
+    hc = A * mchirp ** (5.0 / 6.0) / dl / f0 ** (7.0 / 6.0) 
     if ff < f0:
         hc *= (ff / f0) ** (-7. / 6.)
     elif ff >= f0 and ff < f1:

@@ -1,6 +1,5 @@
 import matplotlib.pyplot as pl
 import matplotlib.colors as cl
-import detection as dt
 import numpy as np
 import os
 import sys
